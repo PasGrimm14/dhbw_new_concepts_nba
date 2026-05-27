@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud Computing & Databricks</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ecf0faff;
+    --surface: #111520;
+    --card: #161c2e;
+    --border: #1e2840;
+    --accent: #ff5722;
+    --accent2: #00e5ff;
+    --accent3: #7c4dff;
+    --text: #e8ecf4;
+    --muted: #6b7a99;
+    --databricks: #ff3621;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 3rem;
+    background: rgba(10,13,20,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent2);
+  }
+
+  .nav-dots {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .nav-dot.active { background: var(--accent2); transform: scale(1.4); }
+
+  /* SLIDES */
+  .slide {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 7rem 4rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(30,40,64,0.4) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,40,64,0.4) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* HERO SLIDE */
+  #slide-0 {
+    background: radial-gradient(ellipse 80% 60% at 50% 50%, #0d1830 0%, var(--bg) 70%);
+  }
+
+  #slide-0::after {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.2s forwards;
+  }
+
+  .hero-title {
+    font-size: clamp(3rem, 7vw, 6rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.7s 0.4s forwards;
+  }
+
+  .hero-title span {
+    display: block;
+    background: linear-gradient(135deg, var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 550px;
+    line-height: 1.7;
+    opacity: 0;
+    animation: fadeUp 0.7s 0.6s forwards;
+  }
+
+  .hero-chips {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.7s 0.8s forwards;
+  }
+
+  .chip {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    background: var(--card);
+  }
+
+  .chip.highlight { border-color: var(--accent2); color: var(--accent2); }
+
+  /* SECTION HEADER */
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+
+  .section-title em {
+    font-style: normal;
+    color: var(--accent2);
+  }
+
+  .section-lead {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 620px;
+    line-height: 1.75;
+    margin-bottom: 3rem;
+  }
+
+  /* CARDS GRID */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    position: relative;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+
+  .card:hover {
+    border-color: var(--accent2);
+    transform: translateY(-4px);
+  }
+
+  .card-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .card h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .card p {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .card-tag {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent3);
+    letter-spacing: 0.1em;
+  }
+
+  /* SERVICE MODEL */
+  .service-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 780px;
+  }
+
+  .service-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+
+  .service-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent2);
+    letter-spacing: 0.1em;
+    text-align: center;
+    padding: 0.5rem;
+  }
+
+  .service-blocks {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .sblock {
+    flex: 1;
+    min-width: 100px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid transparent;
+  }
+
+  .sblock.managed { background: rgba(0,229,255,0.08); border-color: rgba(0,229,255,0.2); color: var(--accent2); }
+  .sblock.partial { background: rgba(124,77,255,0.08); border-color: rgba(124,77,255,0.2); color: #a47fff; }
+  .sblock.user { background: rgba(255,87,34,0.08); border-color: rgba(255,87,34,0.2); color: #ff8a65; }
+
+  /* DATABRICKS SLIDE */
+  #slide-5 {
+    background: radial-gradient(ellipse 70% 50% at 30% 50%, rgba(255,54,33,0.06) 0%, transparent 60%);
+  }
+
+  .db-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .db-logo-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .db-logo-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(255,54,33,0.08) 0%, transparent 70%);
+  }
+
+  .db-diamond {
+    width: 80px; height: 80px;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .db-diamond svg { width: 100%; height: 100%; }
+
+  .db-name {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .db-name span { color: var(--databricks); }
+
+  .db-tagline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* ARCHITECTURE DIAGRAM */
+  .arch-diagram {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .arch-layer {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    align-items: stretch;
+  }
+
+  .arch-layer-label {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    min-width: 30px;
+  }
+
+  .arch-blocks {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+
+  .ablock {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.9rem 1rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid transparent;
+    position: relative;
+  }
+
+  .ablock.blue { background: rgba(0,229,255,0.07); border-color: rgba(0,229,255,0.25); color: var(--accent2); }
+  .ablock.red { background: rgba(255,54,33,0.07); border-color: rgba(255,54,33,0.25); color: #ff7055; }
+  .ablock.purple { background: rgba(124,77,255,0.07); border-color: rgba(124,77,255,0.25); color: #a47fff; }
+  .ablock.green { background: rgba(0,230,118,0.07); border-color: rgba(0,230,118,0.25); color: #4cde8c; }
+  .ablock.orange { background: rgba(255,152,0,0.07); border-color: rgba(255,152,0,0.25); color: #ffc24d; }
+
+  .ablock small {
+    display: block;
+    font-weight: 400;
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-top: 0.2rem;
+  }
+
+  /* TIMELINE */
+  .timeline {
+    position: relative;
+    max-width: 800px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent2), var(--accent3));
+  }
+
+  .tl-item {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    align-items: flex-start;
+  }
+
+  .tl-dot {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--accent2);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    z-index: 1;
+  }
+
+  .tl-content h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .tl-content p {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* COMPARISON TABLE */
+  .compare-table {
+    width: 100%;
+    max-width: 900px;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .compare-table th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .compare-table th:first-child { border-radius: 10px 0 0 0; }
+  .compare-table th:last-child { border-radius: 0 10px 0 0; }
+
+  .compare-table td {
+    padding: 1rem 1.5rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  .compare-table tr:last-child td:first-child { border-radius: 0 0 0 10px; }
+  .compare-table tr:last-child td:last-child { border-radius: 0 0 10px 0; }
+
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .badge.yes { background: rgba(0,230,118,0.1); color: #4cde8c; }
+  .badge.partial { background: rgba(255,152,0,0.1); color: #ffc24d; }
+  .badge.no { background: rgba(255,87,34,0.1); color: #ff8a65; }
+
+  /* USE CASE CARDS */
+  .use-cases {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  .uc-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.75rem;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+
+  .uc-card:hover {
+    border-color: var(--databricks);
+    transform: translateY(-4px);
+  }
+
+  .uc-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--databricks);
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+  }
+
+  .uc-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+
+  .uc-card p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* FINAL SLIDE */
+  #slide-9 {
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, #0d1528 0%, var(--bg) 70%);
+    text-align: center;
+    align-items: center;
+  }
+
+  .final-icon {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.7s 0.3s forwards;
+  }
+
+  /* DIVIDER */
+  .divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent3));
+    margin: 1.5rem 0;
+    border-radius: 2px;
+  }
+
+  /* PROGRESS */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent3));
+    z-index: 200;
+    transition: width 0.3s;
+  }
+
+  /* SLIDE INDICATOR */
+  .slide-num {
+    position: absolute;
+    bottom: 2rem; right: 3rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* SCROLL CUE */
+  .scroll-cue {
+    position: absolute;
+    bottom: 2.5rem; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0;
+    animation: fadeUp 1s 1.4s forwards;
+  }
+
+  .scroll-cue span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .scroll-arrow {
+    width: 24px; height: 24px;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg);
+    animation: bounce 1.5s infinite;
+  }
+
+  /* HIGHLIGHT BOX */
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(0,229,255,0.06), rgba(124,77,255,0.06));
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-top: 2rem;
+    max-width: 700px;
+  }
+
+  .highlight-box p {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--text);
+  }
+
+  .highlight-box strong { color: var(--accent2); }
+
+  /* KEYFRAMES */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: rotate(45deg) translateY(0); }
+    50% { transform: rotate(45deg) translateY(6px); }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .slide { padding: 6rem 1.5rem 3rem; }
+    nav { padding: 1rem 1.5rem; }
+    .db-hero { grid-template-columns: 1fr; }
+    .use-cases { grid-template-columns: 1fr; }
+    .service-row { grid-template-columns: 1fr; }
+    .arch-layer-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<nav>
+  <div class="nav-logo">Cloud & Databricks</div>
+  <div class="nav-dots" id="navDots"></div>
+</nav>
+
+<!-- SLIDE 0: HERO -->
+<section class="slide" id="slide-0">
+  <div class="hero-label">Präsentation · Cloud Computing</div>
+  <h1 class="hero-title">
+    Cloud<br>
+    <span>Computing</span>
+  </h1>
+  <p class="hero-subtitle">Von der Theorie zur Praxis – Was steckt hinter der Cloud und wie nutzt Databricks ihre volle Kraft?</p>
+  <div class="hero-chips">
+    <span class="chip highlight">IaaS · PaaS · SaaS</span>
+    <span class="chip">Skalierbarkeit</span>
+    <span class="chip">Databricks</span>
+    <span class="chip">Data & AI</span>
+  </div>
+  <div class="scroll-cue">
+    <span>Scrollen</span>
+    <div class="scroll-arrow"></div>
+  </div>
+  <span class="slide-num">01 / 10</span>
+</section>
+
+<!-- SLIDE 1: Was ist Cloud Computing -->
+<section class="slide" id="slide-1">
+  <div class="section-num">// 01 — Definition</div>
+  <h2 class="section-title">Was ist<br><em>Cloud Computing?</em></h2>
+  <p class="section-lead">Cloud Computing bezeichnet die Bereitstellung von IT-Ressourcen über das Internet – auf Abruf, nach Bedarf und als bezahlter Service.</p>
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">🌐</span>
+      <span class="card-tag">NIST Definition</span>
+      <h3>On-Demand Self-Service</h3>
+      <p>Ressourcen wie Rechenleistung oder Speicher können jederzeit ohne menschliche Interaktion mit dem Anbieter bereitgestellt werden.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔗</span>
+      <span class="card-tag">Zugang</span>
+      <h3>Breiter Netzwerkzugang</h3>
+      <p>Dienste sind über Standardmechanismen verfügbar und zugänglich von verschiedenen Geräten wie Laptops, Tablets oder Smartphones.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">📦</span>
+      <span class="card-tag">Ressourcen</span>
+      <h3>Ressourcen-Pooling</h3>
+      <p>Die Ressourcen des Anbieters werden in einem Pool zusammengefasst und mehreren Kunden gleichzeitig dynamisch zugewiesen.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">⚡</span>
+      <span class="card-tag">Elastizität</span>
+      <h3>Schnelle Elastizität</h3>
+      <p>Kapazitäten können elastisch bereitgestellt und freigegeben werden – oft automatisch, um der Nachfrage zu folgen.</p>
+    </div>
+  </div>
+  <span class="slide-num">02 / 10</span>
+</section>
+
+<!-- SLIDE 2: Vorteile -->
+<section class="slide" id="slide-2">
+  <div class="section-num">// 02 — Vorteile</div>
+  <h2 class="section-title">Warum die<br><em>Cloud?</em></h2>
+  <p class="section-lead">Unternehmen weltweit migrieren in die Cloud – nicht ohne Grund.</p>
+  <div class="cards">
+    <div class="card">
+      <span class="card-icon">💰</span>
+      <h3>Kosteneffizienz</h3>
+      <p>Keine teuren Vorabinvestitionen in Hardware. Pay-as-you-go: Zahlen nur für tatsächlich genutzte Ressourcen.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">📈</span>
+      <h3>Skalierbarkeit</h3>
+      <p>Binnen Minuten von 10 auf 10.000 Server skalieren. Kapazität wächst mit dem Unternehmen – ohne Vorlaufzeit.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🛡️</span>
+      <h3>Sicherheit & Compliance</h3>
+      <p>Hyperscaler investieren Milliarden in Sicherheit. ISO 27001, SOC 2, DSGVO-Compliance out-of-the-box.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🌍</span>
+      <h3>Globale Reichweite</h3>
+      <p>Daten und Anwendungen in Rechenzentren weltweit verteilen. Niedrige Latenz für Nutzer rund um den Globus.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔄</span>
+      <h3>Agilität</h3>
+      <p>Neue Umgebungen in Sekunden aufsetzen. Development, Test und Production parallel betreiben.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">♻️</span>
+      <h3>Wartungsfreiheit</h3>
+      <p>Updates, Patches und Infrastruktur-Wartung übernimmt der Anbieter. Teams fokussieren auf Innovation.</p>
+    </div>
+  </div>
+  <span class="slide-num">03 / 10</span>
+</section>
+
+<!-- SLIDE 3: Service-Modelle -->
+<section class="slide" id="slide-3">
+  <div class="section-num">// 03 — Service-Modelle</div>
+  <h2 class="section-title">IaaS · PaaS<br><em>· SaaS</em></h2>
+  <p class="section-lead">Die drei Schichten der Cloud – wer verwaltet was?</p>
+  <div class="service-stack">
+    <div style="display:flex; gap:0.75rem; margin-bottom:0.5rem; padding-left:116px;">
+      <div style="flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--accent2);letter-spacing:0.1em;">VOM ANBIETER VERWALTET</div>
+      <div style="flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#a47fff;letter-spacing:0.1em;">GETEILT</div>
+      <div style="flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#ff8a65;letter-spacing:0.1em;">VOM NUTZER</div>
+    </div>
+    <div class="service-row">
+      <div class="service-label">SaaS</div>
+      <div class="service-blocks">
+        <div class="sblock managed">Netzwerk</div>
+        <div class="sblock managed">Server</div>
+        <div class="sblock managed">OS</div>
+        <div class="sblock managed">Middleware</div>
+        <div class="sblock managed">Laufzeit</div>
+        <div class="sblock managed">Daten</div>
+        <div class="sblock managed">App</div>
+      </div>
+    </div>
+    <div class="service-row">
+      <div class="service-label">PaaS</div>
+      <div class="service-blocks">
+        <div class="sblock managed">Netzwerk</div>
+        <div class="sblock managed">Server</div>
+        <div class="sblock managed">OS</div>
+        <div class="sblock managed">Middleware</div>
+        <div class="sblock managed">Laufzeit</div>
+        <div class="sblock user">Daten</div>
+        <div class="sblock user">App</div>
+      </div>
+    </div>
+    <div class="service-row">
+      <div class="service-label">IaaS</div>
+      <div class="service-blocks">
+        <div class="sblock managed">Netzwerk</div>
+        <div class="sblock managed">Server</div>
+        <div class="sblock partial">OS</div>
+        <div class="sblock user">Middleware</div>
+        <div class="sblock user">Laufzeit</div>
+        <div class="sblock user">Daten</div>
+        <div class="sblock user">App</div>
+      </div>
+    </div>
+  </div>
+  <div class="highlight-box">
+    <p><strong>Beispiele:</strong> IaaS → AWS EC2, Azure VMs | PaaS → Google App Engine, Heroku | SaaS → Microsoft 365, Salesforce, <strong>Databricks</strong></p>
+  </div>
+  <span class="slide-num">04 / 10</span>
+</section>
+
+<!-- SLIDE 4: Cloud-Anbieter -->
+<section class="slide" id="slide-4">
+  <div class="section-num">// 04 — Hyperscaler</div>
+  <h2 class="section-title">Die großen<br><em>Cloud-Anbieter</em></h2>
+  <p class="section-lead">Drei Hyperscaler dominieren den Markt mit zusammen über 65% Marktanteil.</p>
+  <div class="cards">
+    <div class="card" style="border-color: rgba(255,153,0,0.3);">
+      <span class="card-icon">🟠</span>
+      <span class="card-tag" style="color:#ff9900">~33% Marktanteil</span>
+      <h3>Amazon Web Services</h3>
+      <p>Marktführer seit 2006. Über 200 Services von EC2 bis SageMaker. Stärke in Breite und Reife des Portfolios.</p>
+    </div>
+    <div class="card" style="border-color: rgba(0,120,212,0.3);">
+      <span class="card-icon">🔵</span>
+      <span class="card-tag" style="color:#0078d4">~22% Marktanteil</span>
+      <h3>Microsoft Azure</h3>
+      <p>Stärke in Enterprise-Integration mit Office 365 und Active Directory. Führend bei hybriden Szenarien.</p>
+    </div>
+    <div class="card" style="border-color: rgba(66,133,244,0.3);">
+      <span class="card-icon">🔷</span>
+      <span class="card-tag" style="color:#4285f4">~11% Marktanteil</span>
+      <h3>Google Cloud Platform</h3>
+      <p>Technologieführer bei KI/ML mit Vertex AI und BigQuery. Größte Stärke in Analytics und Data Engineering.</p>
+    </div>
+  </div>
+  <div class="highlight-box">
+    <p>Databricks läuft auf <strong>allen drei Hyperscalern</strong> – AWS, Azure und GCP. Der Kunde wählt die Plattform, Databricks liefert die Datenplattform darüber.</p>
+  </div>
+  <span class="slide-num">05 / 10</span>
+</section>
+
+<!-- SLIDE 5: Databricks Intro -->
+<section class="slide" id="slide-5">
+  <div class="section-num">// 05 — Praxisbeispiel</div>
+  <h2 class="section-title">Cloud in der<br><em>Praxis: Databricks</em></h2>
+  <div class="db-hero">
+    <div>
+      <p class="section-lead">Databricks ist die führende Cloud-native Daten- und KI-Plattform – ein perfektes Beispiel, wie moderne Software Cloud-Prinzipien auslebt.</p>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot">🎓</div>
+          <div class="tl-content">
+            <h3>2013 – Gründung an der UC Berkeley</h3>
+            <p>Die Entwickler von Apache Spark gründen Databricks als kommerzielle Plattform rund um ihre Open-Source-Innovation.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">☁️</div>
+          <div class="tl-content">
+            <h3>Cloud-First von Anfang an</h3>
+            <p>Keine eigene Hardware. Databricks läuft vollständig auf dem Cloud-Substrate des Kunden – AWS, Azure oder GCP.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">🦅</div>
+          <div class="tl-content">
+            <h3>2023 – Lakehouse Platform</h3>
+            <p>Einführung der Unity Catalog und des Databricks Lakehouse: Data Warehouse + Data Lake in einem.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="db-logo-box">
+      <div class="db-diamond">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="50,5 95,30 95,70 50,95 5,70 5,30" fill="none" stroke="#ff3621" stroke-width="3"/>
+          <polygon points="50,20 80,37 80,63 50,80 20,63 20,37" fill="rgba(255,54,33,0.15)" stroke="#ff3621" stroke-width="1.5"/>
+          <polygon points="50,35 65,44 65,56 50,65 35,56 35,44" fill="rgba(255,54,33,0.3)" stroke="#ff3621" stroke-width="1"/>
+          <line x1="50" y1="5" x2="50" y2="20" stroke="#ff3621" stroke-width="1.5" opacity="0.6"/>
+          <line x1="95" y1="30" x2="80" y2="37" stroke="#ff3621" stroke-width="1.5" opacity="0.6"/>
+          <line x1="95" y1="70" x2="80" y2="63" stroke="#ff3621" stroke-width="1.5" opacity="0.6"/>
+          <line x1="50" y1="95" x2="50" y2="80" stroke="#ff3621" stroke-width="1.5" opacity="0.6"/>
+          <line x1="5" y1="70" x2="20" y2="63" stroke="#ff3621" stroke-width="1.5" opacity="0.6"/>
+          <line x1="5" y1="30" x2="20" y2="37" stroke="#ff3621" stroke-width="1.5" opacity="0.6"/>
+        </svg>
+      </div>
+      <div class="db-name">Data<span>bricks</span></div>
+      <div class="db-tagline">The Data + AI Company</div>
+      <div style="margin-top:1.5rem; display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center;">
+        <span class="chip" style="border-color:rgba(255,54,33,0.4);color:#ff7055;font-size:0.7rem;">Apache Spark</span>
+        <span class="chip" style="border-color:rgba(255,54,33,0.4);color:#ff7055;font-size:0.7rem;">Delta Lake</span>
+        <span class="chip" style="border-color:rgba(255,54,33,0.4);color:#ff7055;font-size:0.7rem;">MLflow</span>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">06 / 10</span>
+</section>
+
+<!-- SLIDE 6: Databricks Architektur -->
+<section class="slide" id="slide-6">
+  <div class="section-num">// 06 — Architektur</div>
+  <h2 class="section-title">Databricks<br><em>Architektur</em></h2>
+  <p class="section-lead">Wie Databricks Cloud-Ressourcen orchestriert – ein mehrschichtiges System.</p>
+  <div class="arch-diagram">
+    <div class="arch-layer">
+      <div class="arch-layer-label">Nutzer</div>
+      <div class="arch-blocks">
+        <div class="ablock blue">Notebooks<small>Python / SQL / R / Scala</small></div>
+        <div class="ablock blue">Databricks SQL<small>BI & Analysen</small></div>
+        <div class="ablock blue">Workflows<small>Job Scheduling</small></div>
+        <div class="ablock blue">ML Runtime<small>AutoML / Experimente</small></div>
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-label">Plattform</div>
+      <div class="arch-blocks">
+        <div class="ablock red">Unity Catalog<small>Datenverwaltung & Governance</small></div>
+        <div class="ablock red">Delta Lake<small>ACID Transaktionen</small></div>
+        <div class="ablock red">MLflow<small>ML Lifecycle</small></div>
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-label">Compute</div>
+      <div class="arch-blocks">
+        <div class="ablock purple">Cluster Manager<small>Apache Spark</small></div>
+        <div class="ablock purple">Serverless Compute<small>Auto-Scaling</small></div>
+        <div class="ablock purple">SQL Warehouse<small>Optimierte Abfragen</small></div>
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-label">Cloud</div>
+      <div class="arch-blocks">
+        <div class="ablock green">AWS S3 / Azure ADLS / GCS<small>Object Storage</small></div>
+        <div class="ablock green">VMs & Auto-Scaling Groups<small>IaaS Ressourcen</small></div>
+        <div class="ablock green">VPC / VNET<small>Netzwerk-Isolation</small></div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">07 / 10</span>
+</section>
+
+<!-- SLIDE 7: Use Cases -->
+<section class="slide" id="slide-7">
+  <div class="section-num">// 07 — Anwendungsfälle</div>
+  <h2 class="section-title">Databricks<br><em>Use Cases</em></h2>
+  <p class="section-lead">Wie führende Unternehmen Databricks einsetzen.</p>
+  <div class="use-cases">
+    <div class="uc-card">
+      <div class="uc-number">USE CASE · 01</div>
+      <h3>🏦 Finanzanalyse</h3>
+      <p>Echtzeit-Risikoberechnungen auf Millionen von Transaktionen. Ein Großbank verarbeitet täglich 2 TB Transaktionsdaten mit Spark-Clustern, die on-demand hochskalieren.</p>
+    </div>
+    <div class="uc-card">
+      <div class="uc-number">USE CASE · 02</div>
+      <h3>🛒 E-Commerce Empfehlungen</h3>
+      <p>Personalisierungsmodelle trainieren auf dem gesamten Kaufverlauf. Cluster starten nachts für Batch-Training und fahren tagsüber für Inferenz auf wenige Nodes herunter.</p>
+    </div>
+    <div class="uc-card">
+      <div class="uc-number">USE CASE · 03</div>
+      <h3>🏥 Healthcare Analytics</h3>
+      <p>Anonymisierte Patientendaten in Delta Lake. Compliance-Teams können via Unity Catalog genau sehen, wer wann auf welche Daten zugegriffen hat.</p>
+    </div>
+    <div class="uc-card">
+      <div class="uc-number">USE CASE · 04</div>
+      <h3>🚗 IoT & Streaming</h3>
+      <p>Fahrzeugtelemetrie von 500.000 Autos in Echtzeit verarbeiten. Structured Streaming in Databricks empfängt, transformiert und speichert Daten mit sub-Sekunden-Latenz.</p>
+    </div>
+    <div class="uc-card">
+      <div class="uc-number">USE CASE · 05</div>
+      <h3>🤖 Generative KI</h3>
+      <p>Fine-Tuning von LLMs auf unternehmenseigenen Daten. DBRX, Databricks' eigenes Large Language Model, läuft vollständig in der eigenen Cloud-Infrastruktur.</p>
+    </div>
+    <div class="uc-card">
+      <div class="uc-number">USE CASE · 06</div>
+      <h3>📊 Data Warehouse Migration</h3>
+      <p>Unternehmen migrieren teure On-Premise-Warehouses zu Databricks SQL. 10x günstigere Kosten bei gleichzeitig höherer Performance durch Cloud-Elastizität.</p>
+    </div>
+  </div>
+  <span class="slide-num">08 / 10</span>
+</section>
+
+<!-- SLIDE 8: Vergleich On-Prem vs Cloud -->
+<section class="slide" id="slide-8">
+  <div class="section-num">// 08 — Vergleich</div>
+  <h2 class="section-title">On-Premise<br><em>vs. Cloud</em></h2>
+  <p class="section-lead">Am Beispiel einer Databricks-ähnlichen Datenplattform – traditionell vs. cloud-nativ.</p>
+  <div style="overflow-x:auto;">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Kriterium</th>
+          <th>On-Premise</th>
+          <th>Cloud (Databricks)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Inbetriebnahme</strong></td>
+          <td>6–18 Monate (Hardware beschaffen, aufbauen, konfigurieren)</td>
+          <td>Workspace in &lt;10 Minuten erstellt, sofort produktiv</td>
+        </tr>
+        <tr>
+          <td><strong>Skalierung</strong></td>
+          <td><span class="badge no">Monate</span> Neue Server kaufen, liefern, einbauen</td>
+          <td><span class="badge yes">Sekunden</span> Auto-Scaling per API oder automatisch</td>
+        </tr>
+        <tr>
+          <td><strong>Kosten</strong></td>
+          <td>Hohe CapEx (Hardware), fixe OpEx – egal ob genutzt oder nicht</td>
+          <td>Reine OpEx, Pay-per-Use – Cluster stoppen = 0 Kosten</td>
+        </tr>
+        <tr>
+          <td><strong>Updates & Patches</strong></td>
+          <td><span class="badge no">Manuell</span> Downtimes einplanen, eigenes Ops-Team</td>
+          <td><span class="badge yes">Automatisch</span> Databricks updated Platform im Hintergrund</td>
+        </tr>
+        <tr>
+          <td><strong>Disaster Recovery</strong></td>
+          <td>Zweites Rechenzentrum nötig – doppelte Kosten</td>
+          <td>Multi-Region-Replikation, automatische Failover</td>
+        </tr>
+        <tr>
+          <td><strong>Globaler Zugang</strong></td>
+          <td><span class="badge partial">Eingeschränkt</span> VPN, Latenz, Komplexität</td>
+          <td><span class="badge yes">Nativ</span> Zugang weltweit, SSO, Web-Browser</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <span class="slide-num">09 / 10</span>
+</section>
+
+<!-- SLIDE 9: Fazit -->
+<section class="slide" id="slide-9">
+  <div class="final-icon">☁️</div>
+  <div class="section-num">// 09 — Fazit</div>
+  <h2 class="section-title" style="text-align:center;">Cloud Computing<br><em>verändert alles</em></h2>
+  <div class="divider" style="margin: 1.5rem auto;"></div>
+  <p style="text-align:center; color:var(--muted); max-width:600px; line-height:1.8; font-size:1rem;">
+    Cloud Computing ist kein Trend, sondern die Grundlage moderner IT. Databricks zeigt exemplarisch, wie Unternehmen durch Cloud-native Architekturen schneller, skalierbarer und kosteneffizienter Daten in Wert verwandeln.
+  </p>
+  <div style="display:flex; gap:3rem; margin-top:3rem; flex-wrap:wrap; justify-content:center;">
+    <div style="text-align:center;">
+      <div style="font-size:2.5rem;font-weight:800;color:var(--accent2);">10 Min</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:0.3rem;">statt 18 Monate</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:2.5rem;font-weight:800;color:var(--accent2);">∞</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:0.3rem;">Skalierbarkeit</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:2.5rem;font-weight:800;color:var(--accent2);">3</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:0.3rem;">Cloud-Anbieter</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:2.5rem;font-weight:800;color:var(--accent2);">Pay</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:0.3rem;">per Use</div>
+    </div>
+  </div>
+  <span class="slide-num">10 / 10</span>
+</section>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const navDots = document.getElementById('navDots');
+  const progressBar = document.getElementById('progressBar');
+  const totalSlides = slides.length;
+
+  // Create nav dots
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => {
+      slides[i].scrollIntoView({ behavior: 'smooth' });
+    });
+    navDots.appendChild(dot);
+  });
+
+  // Intersection Observer
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const idx = Array.from(slides).indexOf(entry.target);
+        document.querySelectorAll('.nav-dot').forEach((d, i) => {
+          d.classList.toggle('active', i === idx);
+        });
+        const progress = ((idx + 1) / totalSlides) * 100;
+        progressBar.style.width = progress + '%';
+      }
+    });
+  }, { threshold: 0.5 });
+
+  slides.forEach(s => observer.observe(s));
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    const current = Array.from(slides).findIndex(s => {
+      const r = s.getBoundingClientRect();
+      return r.top >= -100 && r.top < window.innerHeight / 2;
+    });
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      if (current < totalSlides - 1) slides[current + 1].scrollIntoView({ behavior: 'smooth' });
+    }
+    if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      if (current > 0) slides[current - 1].scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+</script>
+
+</body>
+</html>
